@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - 智慧交通员工信息管理系统</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0a3d62;
+      --secondary: #38ada9;
+      --accent: #f6b93b;
+      --dark: #1e272e;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+      background: url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1920&q=80') center/cover no-repeat;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(10,61,98,0.85) 0%, rgba(30,87,116,0.75) 100%);
+      z-index: 0;
+    }
+    .login-box {
+      position: relative;
+      z-index: 1;
+      width: 420px;
+      background: rgba(255,255,255,0.97);
+      border-radius: 16px;
+      padding: 48px 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .login-logo i {
+      font-size: 52px;
+      color: var(--accent);
+      margin-bottom: 12px;
+      display: block;
+    }
+    .login-logo h2 {
+      color: var(--primary);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      margin-bottom: 4px;
+    }
+    .login-logo span {
+      color: #888;
+      font-size: 12px;
+      letter-spacing: 2px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .form-control {
+      height: 44px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      padding: 0 16px;
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(10,61,98,0.1);
+    }
+    .input-group-addon {
+      background: var(--primary);
+      border: none;
+      border-radius: 8px 0 0 8px;
+      color: #fff;
+      padding: 0 14px;
+    }
+    .input-group .form-control {
+      border-radius: 0 8px 8px 0;
+    }
+    .btn-login {
+      width: 100%;
+      height: 46px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--primary) 0%, #1e5f74 100%);
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      transition: all 0.3s;
+    }
+    .btn-login:hover {
+      background: linear-gradient(135deg, #082e4a 0%, var(--primary) 100%);
+      box-shadow: 0 6px 20px rgba(10,61,98,0.4);
+      color: #fff;
+    }
+    .error-msg {
+      background: #fff3f3;
+      border: 1px solid #f5c6cb;
+      color: #c0392b;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .login-footer {
+      text-align: center;
+      margin-top: 24px;
+      color: #aaa;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-overlay"></div>
+  <div class="login-box">
+    <div class="login-logo">
+      <i class="fas fa-route"></i>
+      <h2>智慧交通</h2>
+      <span>员工信息管理系统</span>
+    </div>
+
+    {% if error %}
+    <div class="error-msg"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>用户名</label>
+        <div class="input-group">
+          <span class="input-group-addon"><i class="fas fa-user"></i></span>
+          <input type="text" name="username" class="form-control" placeholder="请输入用户名" required autofocus>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <div class="input-group">
+          <span class="input-group-addon"><i class="fas fa-lock"></i></span>
+          <input type="password" name="password" class="form-control" placeholder="请输入密码" required>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-login">登 录</button>
+    </form>
+
+    <div class="login-footer">
+      Smart Transportation Employee Management System<br>
+      v2.0 — 智慧交通科技
+    </div>
+  </div>
+</body>
+</html>
