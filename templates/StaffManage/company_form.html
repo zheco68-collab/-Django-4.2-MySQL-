@@ -1,0 +1,70 @@
+{% extends 'StaffManage/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">{{ company|yesno:"编辑投保公司,添加投保公司" }}</h6>
+        </div>
+        <div class="card-body">
+            <form id="companyForm">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>公司名称</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ company.name|default:'' }}" required>
+                </div>
+                <div class="form-group">
+                    <label>公司编码</label>
+                    <input type="text" class="form-control" id="code" name="code" value="{{ company.code|default:'' }}" required>
+                </div>
+                <div class="form-group">
+                    <label>联系人</label>
+                    <input type="text" class="form-control" id="contact" name="contact" value="{{ company.contact|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label>联系电话</label>
+                    <input type="text" class="form-control" id="phone" name="phone" value="{{ company.phone|default:'' }}">
+                </div>
+                <button type="submit" class="btn btn-primary">保存</button>
+                <a href="/company/list" class="btn btn-secondary">返回</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('#companyForm').submit(function(e) {
+        e.preventDefault();
+        
+        var data = {
+            name: $('#name').val(),
+            code: $('#code').val(),
+            contact: $('#contact').val(),
+            phone: $('#phone').val(),
+        };
+        
+        var url = '{% if company %}/company/update/{{ company.id }}{% else %}/company/create{% endif %}';
+        
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            headers: {'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val()},
+            success: function(response) {
+                if (response.success) {
+                    alert(response.message);
+                    window.location.href = '/company/list';
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function() {
+                alert('保存失败');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

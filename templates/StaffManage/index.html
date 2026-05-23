@@ -1,0 +1,363 @@
+{% extends 'StaffManage/base.html' %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 28px 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        text-align: center;
+        border-top: 4px solid #0a3d62;
+        transition: transform 0.3s, box-shadow 0.3s;
+        margin: 0 10px 20px;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+    .stat-card.primary { border-top-color: #0a3d62; }
+    .stat-card.success { border-top-color: #38ada9; }
+    .stat-card.warning { border-top-color: #f6b93b; }
+    .stat-card.info { border-top-color: #3498db; }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        margin: 0 auto 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+    .stat-icon.primary { background: rgba(10,61,98,0.1); color: #0a3d62; }
+    .stat-icon.success { background: rgba(56,173,169,0.1); color: #38ada9; }
+    .stat-icon.warning { background: rgba(246,185,59,0.1); color: #f6b93b; }
+    .stat-icon.info { background: rgba(52,152,219,0.1); color: #3498db; }
+    
+    .stat-num {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1e272e;
+        margin-bottom: 4px;
+    }
+    .stat-label {
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+    
+    .recent-activity {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .recent-activity li {
+        padding: 12px 16px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: background 0.2s;
+    }
+    .recent-activity li:hover {
+        background: #f8f9fa;
+    }
+    .recent-activity li:last-child {
+        border-bottom: none;
+    }
+    .activity-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    .activity-content {
+        flex: 1;
+        min-width: 0;
+    }
+    .activity-title {
+        font-size: 13px;
+        color: #333;
+        margin-bottom: 2px;
+    }
+    .activity-time {
+        font-size: 11px;
+        color: #999;
+    }
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    .quick-btn {
+        height: 100px;
+        border-radius: 10px;
+        border: none;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .quick-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        text-decoration: none;
+        color: #fff;
+    }
+    .quick-btn i {
+        font-size: 24px;
+    }
+    .quick-btn.primary { background: linear-gradient(135deg, #0a3d62, #1e5f74); }
+    .quick-btn.success { background: linear-gradient(135deg, #38ada9, #2d8f8a); }
+    .quick-btn.warning { background: linear-gradient(135deg, #f6b93b, #e5a82e); }
+    .quick-btn.info { background: linear-gradient(135deg, #3498db, #2980b9); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 欢迎信息 -->
+    <div class="row mb-6">
+        <div class="col-md-12">
+            <div class="card bg-gradient-primary text-white shadow-lg">
+                <div class="card-body py-6">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h1 class="display-4 font-weight-bold">欢迎回来，{{ request.session.admin_real_name|default:request.session.admin_username }}</h1>
+                            <p class="text-white mt-2" style="opacity: 0.8;">今天是 {% now 'Y年m月d日' %}，祝您工作顺利！</p>
+                        </div>
+                        <div class="col-auto">
+                            <div class="avatar-lg bg-white-20 rounded-circle" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user-circle" style="font-size: 48px;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="row mb-8">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card primary">
+                <div class="stat-icon primary"><i class="fas fa-users"></i></div>
+                <div class="stat-num">{{ employee_count }}</div>
+                <div class="stat-label">员工总数</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card success">
+                <div class="stat-icon success"><i class="fas fa-user-check"></i></div>
+                <div class="stat-num">{{ on_job_count }}</div>
+                <div class="stat-label">在职员工</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card warning">
+                <div class="stat-icon warning"><i class="fas fa-building"></i></div>
+                <div class="stat-num">{{ company_count }}</div>
+                <div class="stat-label">投保公司</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card info">
+                <div class="stat-icon info"><i class="fas fa-truck"></i></div>
+                <div class="stat-num">{{ supplier_count }}</div>
+                <div class="stat-label">供应商</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图表和最近活动 -->
+    <div class="row mb-6 mt-6">
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">员工状态分布</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">快捷操作</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="quick-actions">
+                        <a href="/employee/list" class="quick-btn primary">
+                            <i class="fas fa-users"></i>
+                            <span>员工管理</span>
+                        </a>
+                        <a href="/company/list" class="quick-btn success">
+                            <i class="fas fa-building"></i>
+                            <span>投保公司</span>
+                        </a>
+                        <a href="/supplier/list" class="quick-btn warning">
+                            <i class="fas fa-truck"></i>
+                            <span>供应商</span>
+                        </a>
+                        <a href="/premium/query" class="quick-btn info">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <span>保费查询</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据概览 -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">工种分布</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="workTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">投保公司统计</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="companyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+<script>
+$(document).ready(function() {
+    var workTypeData = JSON.parse('{{ work_type_data|safe }}');
+    var companyLabels = JSON.parse('{{ company_labels|safe }}');
+    var companyData = JSON.parse('{{ company_data|safe }}');
+    var onJobCount = parseInt('{{ on_job_count }}');
+    var offJobCount = parseInt('{{ off_job_count }}');
+    
+    // 员工状态分布饼图
+    var statusCtx = document.getElementById('statusChart').getContext('2d');
+    var statusChart = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['在职', '离职'],
+            datasets: [{
+                data: [onJobCount, offJobCount],
+                backgroundColor: ['#10b981', '#ef4444'],
+                borderColor: ['#10b981', '#ef4444'],
+                borderWidth: 2,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 25,
+                        font: { size: 14, weight: '500' },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                }
+            },
+            cutout: '65%'
+        }
+    });
+
+    // 工种分布柱状图
+    var workTypeCtx = document.getElementById('workTypeChart').getContext('2d');
+    var workTypeChart = new Chart(workTypeCtx, {
+        type: 'bar',
+        data: {
+            labels: ['一类工种', '二类工种', '三类工种'],
+            datasets: [{
+                label: '人数',
+                data: workTypeData,
+                backgroundColor: ['#0a3d62', '#38ada9', '#f6b93b'],
+                borderRadius: 8,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+
+    // 投保公司统计横向柱状图
+    var companyCtx = document.getElementById('companyChart').getContext('2d');
+    var companyChart = new Chart(companyCtx, {
+        type: 'bar',
+        data: {
+            labels: companyLabels,
+            datasets: [{
+                label: '员工数',
+                data: companyData,
+                backgroundColor: '#0a3d62',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

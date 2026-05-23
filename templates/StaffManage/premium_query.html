@@ -1,0 +1,71 @@
+{% extends 'StaffManage/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">保费查询</h6>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <form class="form-inline" method="get" action="/premium/query">
+                        <div class="form-group mr-2">
+                            <input type="date" class="form-control" name="start_date" value="{{ start_date }}">
+                        </div>
+                        <div class="form-group mr-2">
+                            <input type="date" class="form-control" name="end_date" value="{{ end_date }}">
+                        </div>
+                        <div class="form-group mr-2">
+                            <select class="form-control" name="company">
+                                <option value="all">全部公司</option>
+                                {% for c in companies %}
+                                <option value="{{ c.id }}" {% if company == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">查询</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <a href="/premium/export?start_date={{ start_date }}&end_date={{ end_date }}&company={{ company }}" class="btn btn-primary">
+                        <i class="fas fa-download"></i> 导出CSV
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>开始时间</th>
+                            <th>截止时间</th>
+                            <th>投保公司</th>
+                            <th>保费总额(元)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for premium in premiums %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ premium.start_date }}</td>
+                            <td>{{ premium.end_date }}</td>
+                            <td>{{ premium.insurance_company.name }}</td>
+                            <td>{{ premium.total_amount }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">暂无数据</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

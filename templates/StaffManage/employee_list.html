@@ -1,0 +1,204 @@
+{% extends 'StaffManage/base.html' %}
+
+{% block extra_css %}
+<style>
+    .search-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 16px;
+    }
+    .search-bar .form-group {
+        margin-bottom: 0;
+        flex: 1;
+        min-width: 140px;
+        max-width: 200px;
+    }
+    .search-bar .btn {
+        flex-shrink: 0;
+    }
+    .action-bar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    .action-bar .btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+    }
+    .table-container {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .table thead th {
+        background: linear-gradient(135deg, #0a3d62, #1e5f74);
+        color: #fff;
+        border: none;
+        font-weight: 500;
+        padding: 12px 16px;
+        text-align: center;
+    }
+    .table tbody td {
+        padding: 12px 16px;
+        vertical-align: middle;
+        text-align: center;
+        border-color: #e9ecef;
+    }
+    .table tbody tr:hover {
+        background: #f8f9fa;
+    }
+    .btn-sm {
+        padding: 4px 10px;
+        font-size: 12px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    {% csrf_token %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">员工信息管理</h6>
+        </div>
+        <div class="card-body">
+            <!-- 搜索区域 -->
+            <form id="searchForm" method="get" action="/employee/list" class="search-bar">
+                <div class="form-group">
+                    <input type="text" class="form-control" name="name" placeholder="姓名" value="{{ name }}">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" name="id_card" placeholder="身份证号" value="{{ id_card }}">
+                </div>
+                <div class="form-group">
+                    <select class="form-control" name="company">
+                        <option value="">全部投保公司</option>
+                        {% for c in companies %}
+                        <option value="{{ c.id }}" {% if company == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select class="form-control" name="supplier">
+                        <option value="">全部供应商</option>
+                        {% for s in suppliers %}
+                        <option value="{{ s.id }}" {% if supplier == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select class="form-control" name="work_type">
+                        <option value="">全部工种</option>
+                        <option value="TYPE1" {% if work_type == 'TYPE1' %}selected{% endif %}>一类</option>
+                        <option value="TYPE2" {% if work_type == 'TYPE2' %}selected{% endif %}>二类</option>
+                        <option value="TYPE3" {% if work_type == 'TYPE3' %}selected{% endif %}>三类</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select class="form-control" name="status">
+                        <option value="">全部状态</option>
+                        <option value="ON" {% if status == 'ON' %}selected{% endif %}>在职</option>
+                        <option value="OFF" {% if status == 'OFF' %}selected{% endif %}>离职</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> 查询
+                </button>
+            </form>
+            
+            <!-- 操作按钮区域 -->
+            <div class="action-bar">
+                <a href="/employee/create" class="btn btn-success">
+                    <i class="fas fa-plus"></i> 添加员工
+                </a>
+                <a href="/employee/import" class="btn btn-warning">
+                    <i class="fas fa-file-import"></i> 批量导入
+                </a>
+                <a href="/employee/export?name={{ name }}&id_card={{ id_card }}&company={{ company }}&supplier={{ supplier }}&work_type={{ work_type }}&status={{ status }}" class="btn btn-info">
+                        <i class="fas fa-download"></i> 导出CSV
+                    </a>
+            </div>
+
+            <!-- 表格区域 -->
+            <div class="table-container">
+                <table class="table table-hover" id="dataTable" width="100%">
+                    <thead>
+                        <tr>
+                            <th width="60">序号</th>
+                            <th width="80">姓名</th>
+                            <th width="80">工种</th>
+                            <th width="120">投保公司</th>
+                            <th width="120">供应商</th>
+                            <th width="120">保费标准(每天)</th>
+                            <th width="100">实时保费</th>
+                            <th width="120">入职时间</th>
+                            <th width="120">离职时间</th>
+                            <th width="100">部门</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for employee in employees %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ employee.name }}</td>
+                            <td>{{ employee.get_work_type_display }}</td>
+                            <td>{{ employee.insurance_company.name }}</td>
+                            <td>{{ employee.supplier.name }}</td>
+                            <td>{{ employee.premium_standard }}</td>
+                            <td>{{ employee.real_time_premium }}</td>
+                            <td>{{ employee.hire_date }}</td>
+                            <td>{{ employee.leave_date|default:'' }}</td>
+                            <td>{{ employee.department.name }}</td>
+                            <td><span class="status-badge {% if employee.status == 'ON' %}status-active{% else %}status-inactive{% endif %}">{{ employee.get_status_display }}</span></td>
+                            <td>
+                                <a href="/employee/update/{{ employee.id }}" class="btn btn-sm btn-info">编辑</a>
+                                <button class="btn btn-sm btn-danger delete-btn" data-id="{{ employee.id }}">删除</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="12" class="text-center">暂无数据</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+$(document).ready(function() {
+    $('.delete-btn').click(function() {
+        var id = $(this).data('id');
+        if (confirm('确定要删除该员工吗？')) {
+            $.ajax({
+                url: '/employee/delete/' + id,
+                type: 'POST',
+                headers: {'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val()},
+                success: function(data) {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

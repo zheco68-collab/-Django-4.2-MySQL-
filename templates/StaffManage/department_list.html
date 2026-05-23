@@ -1,0 +1,128 @@
+{% extends 'StaffManage/base.html' %}
+
+{% block title %}部门管理 - 智慧交通员工信息管理系统{% endblock %}
+
+{% block breadcrumb %}部门管理{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-building" style="color:var(--accent);margin-right:6px;"></i>部门列表</span>
+    <button class="btn btn-success btn-sm" onclick="openAddModal()">
+      <i class="fas fa-plus"></i> 新增部门
+    </button>
+  </div>
+  <div class="card-body">
+    <table class="table table-bordered table-hover">
+      <thead>
+        <tr>
+          <th>部门编码</th>
+          <th>部门名称</th>
+          <th>上级部门</th>
+          <th>负责人</th>
+          <th>电话</th>
+          <th>备注</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for dept in departments %}
+        <tr>
+          <td>{{ dept.code }}</td>
+          <td>{{ dept.name }}</td>
+          <td>{{ dept.parent.name|default:"—" }}</td>
+          <td>{{ dept.leader|default:"—" }}</td>
+          <td>{{ dept.phone|default:"—" }}</td>
+          <td>{{ dept.remark|default:"—"|truncatechars:20 }}</td>
+          <td class="action-btns">
+            <button class="btn btn-primary btn-xs" onclick="deleteDept({{ dept.id }})">
+              <i class="fas fa-trash"></i> 删除
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted">暂无部门数据，请点击上方"新增部门"添加</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="deptModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+        <h4 class="modal-title">新增部门</h4>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>部门编码 *</label>
+          <input type="text" class="form-control" id="dept_code" placeholder="如：TECH">
+        </div>
+        <div class="form-group">
+          <label>部门名称 *</label>
+          <input type="text" class="form-control" id="dept_name" placeholder="如：技术部">
+        </div>
+        <div class="form-group">
+          <label>上级部门</label>
+          <select class="form-control" id="dept_parent">
+            <option value="">无</option>
+            {% for dept in departments %}
+            <option value="{{ dept.id }}">{{ dept.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>负责人</label>
+          <input type="text" class="form-control" id="dept_leader" placeholder="部门负责人姓名">
+        </div>
+        <div class="form-group">
+          <label>电话</label>
+          <input type="text" class="form-control" id="dept_phone" placeholder="部门联系电话">
+        </div>
+        <div class="form-group">
+          <label>备注</label>
+          <textarea class="form-control" id="dept_remark" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" onclick="saveDept()">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+function openAddModal() {
+    $('#deptModal').modal('show');
+}
+function saveDept() {
+    var data = {
+        code: $('#dept_code').val(),
+        name: $('#dept_name').val(),
+        parent_id: $('#dept_parent').val() || null,
+        leader: $('#dept_leader').val(),
+        phone: $('#dept_phone').val(),
+        remark: $('#dept_remark').val()
+    };
+    if (!data.code || !data.name) { alert('请填写部门编码和名称'); return; }
+    $.post('/department/create', JSON.stringify(data), function() {
+        $('#deptModal').modal('hide');
+        location.reload();
+    });
+}
+function deleteDept(id) {
+    if (!confirm('确认删除该部门？')) return;
+    $.post('/department/delete', {id: id}, function(res) {
+        location.reload();
+    }).fail(function(xhr) {
+        var msg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : '删除失败';
+        alert(msg);
+    });
+}
+</script>
+{% endblock %}

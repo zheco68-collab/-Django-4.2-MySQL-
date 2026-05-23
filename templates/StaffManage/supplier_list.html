@@ -1,0 +1,77 @@
+{% extends 'StaffManage/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">供应商管理</h6>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <a href="/supplier/create" class="btn btn-success">
+                        <i class="fas fa-plus"></i> 添加供应商
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>供应商名称</th>
+                            <th>供应商编码</th>
+                            <th>联系人</th>
+                            <th>联系电话</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for supplier in suppliers %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ supplier.name }}</td>
+                            <td>{{ supplier.code }}</td>
+                            <td>{{ supplier.contact|default:'' }}</td>
+                            <td>{{ supplier.phone|default:'' }}</td>
+                            <td>
+                                <a href="/supplier/update/{{ supplier.id }}" class="btn btn-sm btn-info">编辑</a>
+                                <button class="btn btn-sm btn-danger delete-btn" data-id="{{ supplier.id }}">删除</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">暂无数据</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('.delete-btn').click(function() {
+        var id = $(this).data('id');
+        if (confirm('确定要删除该供应商吗？')) {
+            $.ajax({
+                url: '/supplier/delete/' + id,
+                type: 'POST',
+                headers: {'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val()},
+                success: function(data) {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends 'StaffManage/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">{{ employee|yesno:"编辑员工,添加员工" }}</h6>
+        </div>
+        <div class="card-body">
+            <form id="employeeForm">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>姓名</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ employee.name|default:'' }}" required>
+                </div>
+                <div class="form-group">
+                    <label>身份证号</label>
+                    <input type="text" class="form-control" id="id_card" name="id_card" value="{{ employee.id_card|default:'' }}" required>
+                </div>
+                <div class="form-group">
+                    <label>工种</label>
+                    <select class="form-control" id="work_type" name="work_type" required>
+                        <option value="">请选择工种</option>
+                        <option value="TYPE1" {% if employee and employee.work_type == 'TYPE1' %}selected{% endif %}>一类</option>
+                        <option value="TYPE2" {% if employee and employee.work_type == 'TYPE2' %}selected{% endif %}>二类</option>
+                        <option value="TYPE3" {% if employee and employee.work_type == 'TYPE3' %}selected{% endif %}>三类</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>投保公司</label>
+                    <select class="form-control" id="insurance_company" name="insurance_company" required>
+                        <option value="">请选择投保公司</option>
+                        {% for c in companies %}
+                        <option value="{{ c.id }}" {% if employee and employee.insurance_company.id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>供应商</label>
+                    <select class="form-control" id="supplier" name="supplier" required>
+                        <option value="">请选择供应商</option>
+                        {% for s in suppliers %}
+                        <option value="{{ s.id }}" {% if employee and employee.supplier.id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>部门</label>
+                    <select class="form-control" id="department" name="department" required>
+                        <option value="">请选择部门</option>
+                        {% for d in departments %}
+                        <option value="{{ d.id }}" {% if employee and employee.department.id == d.id %}selected{% endif %}>{{ d.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>保费标准(每天)</label>
+                    <input type="number" class="form-control" id="premium_standard" name="premium_standard" value="{{ employee.premium_standard|default:'' }}" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>入职时间</label>
+                    <input type="date" class="form-control" id="hire_date" name="hire_date" value="{{ employee.hire_date|date:'Y-m-d'|default:'' }}" required>
+                </div>
+                <div class="form-group">
+                    <label>离职时间</label>
+                    <input type="date" class="form-control" id="leave_date" name="leave_date" value="{{ employee.leave_date|date:'Y-m-d'|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label>状态</label>
+                    <select class="form-control" id="status" name="status" required>
+                        <option value="ON" {% if not employee or employee.status == 'ON' %}selected{% endif %}>在职</option>
+                        <option value="OFF" {% if employee and employee.status == 'OFF' %}selected{% endif %}>离职</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>联系电话</label>
+                    <input type="text" class="form-control" id="phone" name="phone" value="{{ employee.phone|default:'' }}">
+                </div>
+                <button type="submit" class="btn btn-primary">保存</button>
+                <a href="/employee/list" class="btn btn-secondary">返回</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+$(document).ready(function() {
+    $('#employeeForm').submit(function(e) {
+        e.preventDefault();
+        
+        var data = {
+            name: $('#name').val(),
+            id_card: $('#id_card').val(),
+            work_type: $('#work_type').val(),
+            insurance_company: $('#insurance_company').val(),
+            supplier: $('#supplier').val(),
+            department: $('#department').val(),
+            premium_standard: $('#premium_standard').val(),
+            hire_date: $('#hire_date').val(),
+            leave_date: $('#leave_date').val(),
+            status: $('#status').val(),
+            phone: $('#phone').val(),
+        };
+        
+        var url = '{% if employee %}/employee/update/{{ employee.id }}{% else %}/employee/create{% endif %}';
+        
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            headers: {'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val()},
+            success: function(response) {
+                if (response.success) {
+                    alert(response.message);
+                    window.location.href = '/employee/list';
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function() {
+                alert('保存失败');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
